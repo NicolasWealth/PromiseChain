@@ -14,6 +14,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as CommitmentsIdRouteImport } from './routes/commitments.$id'
+import { Route as PassportAddressRouteImport } from './routes/passport.$address'
 import { Route as ResolutionIdRouteImport } from './routes/resolution.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const CommitmentsIdRoute = CommitmentsIdRouteImport.update({
   path: '/commitments/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PassportAddressRoute = PassportAddressRouteImport.update({
+  id: '/passport/$address',
+  path: '/passport/$address',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResolutionIdRoute = ResolutionIdRouteImport.update({
   id: '/resolution/$id',
   path: '/resolution/$id',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/commitments/$id': typeof CommitmentsIdRoute
+  '/passport/$address': typeof PassportAddressRoute
   '/resolution/$id': typeof ResolutionIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/commitments/$id': typeof CommitmentsIdRoute
+  '/passport/$address': typeof PassportAddressRoute
   '/resolution/$id': typeof ResolutionIdRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/commitments/$id': typeof CommitmentsIdRoute
+  '/passport/$address': typeof PassportAddressRoute
   '/resolution/$id': typeof ResolutionIdRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/commitments/$id'
+    | '/passport/$address'
     | '/resolution/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/commitments/$id'
+    | '/passport/$address'
     | '/resolution/$id'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/commitments/$id'
+    | '/passport/$address'
     | '/resolution/$id'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   CommitmentsIdRoute: typeof CommitmentsIdRoute
+  PassportAddressRoute: typeof PassportAddressRoute
   ResolutionIdRoute: typeof ResolutionIdRoute
 }
 
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommitmentsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/passport/$address': {
+      id: '/passport/$address'
+      path: '/passport/$address'
+      fullPath: '/passport/$address'
+      preLoaderRoute: typeof PassportAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/resolution/$id': {
       id: '/resolution/$id'
       path: '/resolution/$id'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   CommitmentsIdRoute: CommitmentsIdRoute,
+  PassportAddressRoute: PassportAddressRoute,
   ResolutionIdRoute: ResolutionIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -20,7 +20,11 @@ import {
   PROMISECHAIN_CONTRACT_ADDRESS,
   isPromiseChainConfigured,
 } from "@/lib/web3/contract";
-import { currentCommitment, getCommitment as getMockCommitment } from "./mockData";
+import {
+  commitments as mockCommitments,
+  currentCommitment,
+  getCommitment as getMockCommitment,
+} from "./mockData";
 import type { Commitment } from "./mockData";
 
 type CommitmentMode = "chain" | "demo";
@@ -38,6 +42,8 @@ export type BlockchainCommitment = Omit<
   mode: CommitmentMode;
   evidenceType: string;
   evidenceReference: string;
+  creatorAddress?: Address | undefined;
+  beneficiaryAddress?: Address | undefined;
   contractAddress?: Address | undefined;
   resolver?: Address | undefined;
   onChainId?: string | undefined;
@@ -48,6 +54,7 @@ export type BlockchainCommitment = Omit<
   resolvedAt?: string | undefined;
   mergeDate?: string | undefined;
   releaseHash?: string | undefined;
+  evidenceHash?: string | undefined;
   blockNumber?: bigint | undefined;
   confirmationStatus?: "confirmed" | "reverted" | "pending" | "unavailable" | undefined;
 };
@@ -237,12 +244,15 @@ function buildCommitmentView({
   status,
   transactionHash,
   mode,
+  creatorAddress,
+  beneficiaryAddress,
   createdAt,
   lockedAt,
   submittedAt,
   verifiedAt,
   resolvedAt,
   releaseHash,
+  evidenceHash,
   resolver,
   contractAddress,
   onChainId,
@@ -261,12 +271,15 @@ function buildCommitmentView({
   status: Commitment["status"];
   transactionHash?: string | undefined;
   mode: CommitmentMode;
+  creatorAddress?: Address | undefined;
+  beneficiaryAddress?: Address | undefined;
   createdAt?: string | undefined;
   lockedAt?: string | undefined;
   submittedAt?: string | undefined;
   verifiedAt?: string | undefined;
   resolvedAt?: string | undefined;
   releaseHash?: string | undefined;
+  evidenceHash?: string | undefined;
   resolver?: Address | undefined;
   contractAddress?: Address | undefined;
   onChainId?: string | undefined;
@@ -313,9 +326,12 @@ function buildCommitmentView({
     resolvedAt,
     transactionHash,
     releaseHash,
+    evidenceHash,
     mode,
     evidenceType,
     evidenceReference,
+    creatorAddress,
+    beneficiaryAddress,
     resolver,
     contractAddress,
     onChainId,
@@ -373,6 +389,17 @@ export function toCommitmentView(commitment: BlockchainCommitment): Commitment {
   return view;
 }
 
+const passportScanLimit = 250;
+const demoPassportAddress = getAddress("0x3f8c000000000000000000000000000000009a2b");
+
+export type PromisePassportHistory = {
+  address: Address;
+  mode: CommitmentMode;
+  commitments: BlockchainCommitment[];
+  scannedCommitments: number;
+  scanLimitReached: boolean;
+};
+
 function createDemoCommitment(input: CreateCommitmentInput, id: string) {
   const deadline = parseDeadline(input.deadline);
   const description = `${input.title}\n\n${input.description}`.trim();
@@ -380,8 +407,10 @@ function createDemoCommitment(input: CreateCommitmentInput, id: string) {
     id,
     title: input.title,
     description,
-    creator: currentCommitment.creator,
+    creator: shortAddress(demoPassportAddress),
+    creatorAddress: demoPassportAddress,
     beneficiary: shortAddress(input.beneficiary),
+    beneficiaryAddress: getAddress(input.beneficiary),
     amount: Number(input.amount).toLocaleString("en-US", {
       minimumFractionDigits: Number.isInteger(Number(input.amount)) ? 0 : 3,
       maximumFractionDigits: 6,
@@ -506,6 +535,8 @@ async function readLiveCommitment(id: string) {
     description: parsedDescription.description,
     creator: shortAddress(raw.creator),
     beneficiary: shortAddress(raw.beneficiary),
+    creatorAddress: raw.creator,
+    beneficiaryAddress: raw.beneficiary,
     amount: formatEther(raw.amount),
     deadline: Number(raw.deadline),
     evidenceType: raw.evidenceType,
@@ -519,6 +550,7 @@ async function readLiveCommitment(id: string) {
     verifiedAt,
     resolvedAt,
     releaseHash: resolvedLog?.transactionHash,
+    evidenceHash: evidenceLog?.transactionHash,
     resolver: (await readContract(publicClient, {
       abi: PROMISECHAIN_ABI,
       address: contractAddress,
@@ -532,6 +564,108 @@ async function readLiveCommitment(id: string) {
 
   chainCommitmentCache.set(id, commitment);
   return commitment;
+}
+
+async function readRawLiveCommitment(id: string) {
+  const publicClient = await getLivePublicClient();
+  const contractAddress = requireContractAddress();
+
+  return (await readContract(publicClient, {
+    abi: PROMISECHAIN_ABI,
+    address: contractAddress,
+    functionName: "getCommitment",
+    args: [BigInt(id)],
+  })) as {
+    id: bigint;
+    creator: Address;
+    beneficiary: Address;
+    amount: bigint;
+    deadline: bigint;
+    description: string;
+    evidenceType: string;
+    evidenceReference: string;
+    status: number;
+  };
+}
+
+async function readLivePassportHistory(address: Address): Promise<PromisePassportHistory> {
+  const publicClient = await getLivePublicClient();
+  const contractAddress = requireContractAddress();
+  const nextCommitmentId = (await readContract(publicClient, {
+    abi: PROMISECHAIN_ABI,
+    address: contractAddress,
+    functionName: "nextCommitmentId",
+  })) as bigint;
+
+  const newestId = Number(nextCommitmentId - 1n);
+  if (!Number.isSafeInteger(newestId) || newestId <= 0) {
+    return {
+      address,
+      mode: "chain",
+      commitments: [],
+      scannedCommitments: 0,
+      scanLimitReached: false,
+    };
+  }
+
+  const firstId = Math.max(1, newestId - passportScanLimit + 1);
+  const ids = Array.from({ length: newestId - firstId + 1 }, (_, index) => newestId - index);
+  const rawResults = await Promise.allSettled(
+    ids.map(async (commitmentId) => readRawLiveCommitment(String(commitmentId))),
+  );
+  const matchingIds = rawResults.flatMap((result) => {
+    if (result.status !== "fulfilled") {
+      return [];
+    }
+    return getAddress(result.value.creator) === address ? [result.value.id.toString()] : [];
+  });
+  const commitments = await Promise.all(
+    matchingIds.map(async (commitmentId) => readLiveCommitment(commitmentId)),
+  );
+
+  return {
+    address,
+    mode: "chain",
+    commitments: commitments.filter((commitment): commitment is BlockchainCommitment =>
+      Boolean(commitment),
+    ),
+    scannedCommitments: ids.length,
+    scanLimitReached: firstId > 1,
+  };
+}
+
+function seedDemoPassportHistory(address: Address): PromisePassportHistory {
+  const seeded =
+    address === demoPassportAddress
+      ? mockCommitments.map((commitment) => {
+          const seededCommitment = seedMockCommitment(commitment.id);
+          return {
+            ...seededCommitment,
+            creator: shortAddress(address),
+            creatorAddress: address,
+          };
+        })
+      : [];
+  const createdInSession = Array.from(demoCommitments.values()).filter((commitment) => {
+    if (commitment.creatorAddress) {
+      return getAddress(commitment.creatorAddress) === address;
+    }
+    return commitment.creator.toLowerCase() === shortAddress(address).toLowerCase();
+  });
+  const commitments = [...createdInSession, ...seeded]
+    .filter(
+      (commitment, index, list) =>
+        list.findIndex((candidate) => candidate.id === commitment.id) === index,
+    )
+    .sort((left, right) => Number(right.onChainId ?? 0) - Number(left.onChainId ?? 0));
+
+  return {
+    address,
+    mode: "demo",
+    commitments,
+    scannedCommitments: commitments.length,
+    scanLimitReached: false,
+  };
 }
 
 function seedMockCommitment(id: string) {
@@ -698,6 +832,19 @@ export const blockchainService = {
     return liveCommitment;
   },
 
+  async getCommitmentsByCreator(address: string): Promise<PromisePassportHistory> {
+    if (!isAddress(address)) {
+      throw new Error("Enter a valid Ethereum wallet address.");
+    }
+
+    const normalizedAddress = getAddress(address);
+    if (!isPromiseChainConfigured()) {
+      return seedDemoPassportHistory(normalizedAddress);
+    }
+
+    return readLivePassportHistory(normalizedAddress);
+  },
+
   async submitEvidence(id: string, evidenceType: string, evidenceReference: string) {
     const existing = await this.getCommitment(id);
     if (existing.mode === "demo" || !isPromiseChainConfigured()) {
@@ -740,6 +887,7 @@ export const blockchainService = {
       evidenceType,
       evidenceReference,
       submittedAt: await getBlockTimestampLabel(publicClient, receipt.blockNumber),
+      evidenceHash: hash,
       condition: `${evidenceType} / ${evidenceReference}`,
       repository: evidenceType,
       confirmationStatus: "confirmed" as const,

@@ -42,6 +42,14 @@ export type VerificationResult = {
   errorCode?: string;
 };
 
+export type EvidenceDisplay = {
+  label: string;
+  repository: string;
+  primary: string;
+  secondary?: string;
+  githubUrl?: string;
+};
+
 export class EvidenceValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -214,4 +222,57 @@ export function createDemoVerificationResult(commitment: {
     verificationResult.githubTimestamp = commitment.mergeDate;
   }
   return verificationResult;
+}
+
+function evidenceTypeLabel(evidenceType: string) {
+  switch (evidenceType) {
+    case "PR_MERGED":
+      return "GitHub Pull Request";
+    case "ISSUE_CLOSED":
+      return "GitHub Issue";
+    case "COMMIT_ON_BRANCH":
+      return "GitHub Commit";
+    default:
+      return evidenceType || "Evidence";
+  }
+}
+
+export function describeEvidenceReference(
+  evidenceType: string,
+  reference: string,
+): EvidenceDisplay {
+  try {
+    const parsed = parseEvidenceReference(reference);
+    switch (parsed.evidenceType) {
+      case "PR_MERGED":
+        return {
+          label: "GitHub Pull Request",
+          repository: parsed.repository,
+          primary: `${parsed.repository} #${parsed.pullRequestNumber}`,
+          githubUrl: `https://github.com/${parsed.repository}/pull/${parsed.pullRequestNumber}`,
+        };
+      case "ISSUE_CLOSED":
+        return {
+          label: "GitHub Issue",
+          repository: parsed.repository,
+          primary: `${parsed.repository} #${parsed.issueNumber}`,
+          githubUrl: `https://github.com/${parsed.repository}/issues/${parsed.issueNumber}`,
+        };
+      case "COMMIT_ON_BRANCH":
+        return {
+          label: "GitHub Commit",
+          repository: parsed.repository,
+          primary:
+            parsed.commitSha.length > 10 ? `${parsed.commitSha.slice(0, 10)}...` : parsed.commitSha,
+          secondary: `on ${parsed.branch}`,
+          githubUrl: `https://github.com/${parsed.repository}/commit/${parsed.commitSha}`,
+        };
+    }
+  } catch {
+    return {
+      label: evidenceTypeLabel(evidenceType),
+      repository: "Unavailable",
+      primary: reference || "Unavailable",
+    };
+  }
 }

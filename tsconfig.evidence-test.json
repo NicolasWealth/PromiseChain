@@ -10,5 +10,11 @@
     "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["src/services/evidence.ts", "src/services/github.ts", "test/evidence.test.ts"]
+  "include": [
+    "src/services/evidence.ts",
+    "src/services/github.ts",
+    "src/services/promiseRecord.ts",
+    "test/evidence.test.ts",
+    "test/promiseRecord.test.ts"
+  ]
 }

@@ -248,7 +248,7 @@ function Resolution() {
           <div className="space-y-6">
             <EvidencePanel
               commitment={displayCommitment}
-              verified={verificationResult?.verified ?? currentCommitment.status === "completed"}
+              verified={verificationResult?.verified ?? false}
             />
             <section className="border border-rule bg-panel p-5 sm:p-6">
               <SectionEyebrow>Resolution record</SectionEyebrow>

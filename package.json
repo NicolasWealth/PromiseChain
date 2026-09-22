@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test:evidence": "tsc -p tsconfig.evidence-test.json && node -e \"require('fs').writeFileSync('.tmp/evidence-test/package.json', JSON.stringify({type:'commonjs'}))\" && node --test .tmp/evidence-test/test/evidence.test.js",
+    "test:promise-record": "tsc -p tsconfig.evidence-test.json && node -e \"require('fs').writeFileSync('.tmp/evidence-test/package.json', JSON.stringify({type:'commonjs'}))\" && node --test .tmp/evidence-test/test/promiseRecord.test.js",
     "format": "prettier --write .",
     "hardhat:compile": "hardhat compile",
     "hardhat:test": "hardhat test",

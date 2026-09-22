@@ -4,6 +4,7 @@ import { test } from "node:test";
 
 import {
   buildEvidenceReference,
+  createDemoVerificationResult,
   parseEvidenceReference,
   validateEvidenceRequirement,
   verifyEvidence,
@@ -325,6 +326,19 @@ test("distinguishes invalid evidence, missing GitHub data, and API failures", as
   });
   assert.equal(network.status, "error");
   assert.equal(network.errorCode, "network");
+});
+
+test("does not treat demo evidence as verified GitHub evidence", () => {
+  const demo = createDemoVerificationResult({
+    repository: "owner/repo",
+    condition: "GitHub PR #42 merged",
+    mergeStatus: "merged",
+    mergeDate: "2026-09-18T12:00:00Z",
+  });
+
+  assert.equal(demo.verified, false);
+  assert.equal(demo.status, "demo");
+  assert.equal(demo.reason, "Demo evidence is not verified through GitHub.");
 });
 
 test("keeps GitHub token usage behind the server verification boundary", () => {

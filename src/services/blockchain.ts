@@ -454,12 +454,12 @@ function resolveDemoCommitment(
     evidenceType: evidenceType ?? commitment.repository,
     evidenceReference: evidenceReference ?? commitment.condition,
     submittedAt: commitment.submittedAt ?? timestamp,
-    verifiedAt: success ? timestamp : commitment.verifiedAt,
+    verifiedAt: commitment.verifiedAt,
     resolvedAt: timestamp,
     releaseHash: createDemoHash(success ? "rel" : "ref"),
     progress: nextStatus === "completed" ? 100 : 0,
     mergeStatus: success ? ("merged" as const) : ("not-submitted" as const),
-    mergeDate: success ? timestamp : commitment.mergeDate,
+    mergeDate: commitment.mergeDate,
     mode: "demo" as const,
     confirmationStatus: "confirmed" as const,
   };
@@ -527,7 +527,6 @@ async function readLiveCommitment(id: string) {
   const resolvedAt = resolvedLog
     ? await getBlockTimestampLabel(publicClient, resolvedLog.blockNumber)
     : undefined;
-  const verifiedAt = status === "completed" ? (submittedAt ?? resolvedAt) : undefined;
 
   const commitment = buildCommitmentView({
     id,
@@ -547,7 +546,6 @@ async function readLiveCommitment(id: string) {
     createdAt,
     lockedAt,
     submittedAt,
-    verifiedAt,
     resolvedAt,
     releaseHash: resolvedLog?.transactionHash,
     evidenceHash: evidenceLog?.transactionHash,
@@ -692,7 +690,6 @@ function seedMockCommitment(id: string) {
     createdAt: commitment.createdAt,
     lockedAt: commitment.lockedAt,
     submittedAt: commitment.submittedAt,
-    verifiedAt: commitment.verifiedAt,
     resolvedAt: commitment.resolvedAt,
     releaseHash: commitment.releaseHash,
     confirmationStatus: "confirmed",
@@ -929,15 +926,11 @@ export const blockchainService = {
       ...existing,
       status: success ? ("completed" as const) : ("failed" as const),
       resolvedAt: await getBlockTimestampLabel(publicClient, receipt.blockNumber),
-      verifiedAt: success
-        ? await getBlockTimestampLabel(publicClient, receipt.blockNumber)
-        : existing.verifiedAt,
+      verifiedAt: existing.verifiedAt,
       releaseHash: hash,
       progress: success ? 100 : 0,
       mergeStatus: success ? ("merged" as const) : ("not-submitted" as const),
-      mergeDate: success
-        ? await getBlockTimestampLabel(publicClient, receipt.blockNumber)
-        : existing.mergeDate,
+      mergeDate: existing.mergeDate,
       confirmationStatus: "confirmed" as const,
     };
     chainCommitmentCache.set(id, updated);

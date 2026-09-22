@@ -14,6 +14,10 @@ import {
 import { blockchainService, toCommitmentView } from "@/services/blockchain";
 import { getCommitment as getMockCommitment } from "@/services/mockData";
 
+function baseScanTxUrl(hash?: string) {
+  return hash ? `https://sepolia.basescan.org/tx/${hash}` : undefined;
+}
+
 export const Route = createFileRoute("/commitments/$id")({
   head: ({ params }) => ({
     meta: [
@@ -119,13 +123,34 @@ function CommitmentDetails() {
             </div>
             <div className="mt-3 border-y border-rule">
               <TransactionRow
-                label="Funds locked"
-                hash={commitment.transactionHash ?? "Unavailable"}
+                label="Creation transaction"
+                hash={
+                  commitment.mode === "chain"
+                    ? (commitment.transactionHash ?? "Unavailable")
+                    : "Unavailable"
+                }
+                href={
+                  commitment.mode === "chain"
+                    ? baseScanTxUrl(commitment.transactionHash)
+                    : undefined
+                }
               />
+              {commitment.evidenceHash && (
+                <TransactionRow
+                  label="Evidence submission"
+                  hash={commitment.evidenceHash}
+                  href={
+                    commitment.mode === "chain" ? baseScanTxUrl(commitment.evidenceHash) : undefined
+                  }
+                />
+              )}
               {commitment.releaseHash && (
                 <TransactionRow
-                  label="Funds released"
-                  hash={commitment.releaseHash ?? "Unavailable"}
+                  label="Settlement transaction"
+                  hash={commitment.mode === "chain" ? commitment.releaseHash : "Unavailable"}
+                  href={
+                    commitment.mode === "chain" ? baseScanTxUrl(commitment.releaseHash) : undefined
+                  }
                 />
               )}
             </div>

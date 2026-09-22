@@ -206,15 +206,12 @@ export function createDemoVerificationResult(commitment: {
   mergeDate?: string;
 }): VerificationResult {
   const verificationResult: VerificationResult = {
-    verified: commitment.mergeStatus === "merged",
+    verified: false,
     evidenceType: "PR_MERGED",
     repository: commitment.repository,
     reference: commitment.condition,
     checkedAt: new Date().toISOString(),
-    reason:
-      commitment.mergeStatus === "merged"
-        ? "Demo evidence from seeded data. This was not verified through GitHub."
-        : "Demo evidence is not verified through GitHub.",
+    reason: "Demo evidence is not verified through GitHub.",
     status: "demo",
     provider: "demo",
   };

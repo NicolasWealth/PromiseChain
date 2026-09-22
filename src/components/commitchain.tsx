@@ -338,11 +338,15 @@ export function TransactionRow({
   label,
   hash,
   status = "Confirmed",
+  href,
 }: {
   label: string;
   hash: string;
   status?: string;
+  href?: string | undefined;
 }) {
+  const linked = Boolean(href && hash !== "Unavailable");
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-rule py-3 last:border-0">
       <div>
@@ -352,13 +356,19 @@ export function TransactionRow({
           <Copy className="size-3 text-muted-foreground" />
         </p>
       </div>
-      <a
-        href="#explorer"
-        className="inline-flex items-center gap-1 text-xs font-semibold text-lime-soft hover:text-foreground"
-      >
-        {status}
-        <ExternalLink className="size-3" />
-      </a>
+      {linked ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-lime-soft hover:text-foreground"
+        >
+          {status}
+          <ExternalLink className="size-3" />
+        </a>
+      ) : (
+        <span className="text-xs font-semibold text-muted-foreground">{status}</span>
+      )}
     </div>
   );
 }

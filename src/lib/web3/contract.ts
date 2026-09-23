@@ -1,11 +1,9 @@
-import { baseSepolia } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 import type { Address } from "viem";
 
-export const BASE_SEPOLIA_CHAIN_ID = baseSepolia.id;
-export const DEFAULT_BASE_SEPOLIA_RPC_URL = "https://sepolia.base.org";
-
-export const BASE_SEPOLIA_RPC_URL =
-  import.meta.env["VITE_BASE_SEPOLIA_RPC_URL"]?.trim() || DEFAULT_BASE_SEPOLIA_RPC_URL;
+export const SEPOLIA_CHAIN_ID = sepolia.id;
+export const DEFAULT_SEPOLIA_RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+export const SEPOLIA_RPC_URL = import.meta.env["VITE_SEPOLIA_RPC_URL"]?.trim() || DEFAULT_SEPOLIA_RPC_URL;
 
 const contractAddressValue = import.meta.env["VITE_PROMISECHAIN_CONTRACT_ADDRESS"]?.trim();
 

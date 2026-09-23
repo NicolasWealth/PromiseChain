@@ -1,8 +1,10 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import { ethers } from "hardhat";
+import hardhat from "hardhat";
 import { isAddress } from "ethers";
+
+const { ethers } = hardhat;
 
 const ENV_PATH = path.resolve(process.cwd(), ".env.local");
 
@@ -26,11 +28,11 @@ async function upsertEnv(key: string, value: string) {
 
 async function main() {
   if (!process.env.PRIVATE_KEY) {
-    throw new Error("PRIVATE_KEY is required before deploying to Base Sepolia.");
+    throw new Error("PRIVATE_KEY is required before deploying to Sepolia.");
   }
 
-  if (!process.env.BASE_SEPOLIA_RPC_URL) {
-    throw new Error("BASE_SEPOLIA_RPC_URL is required before deploying to Base Sepolia.");
+  if (!process.env.SEPOLIA_RPC_URL) {
+    throw new Error("SEPOLIA_RPC_URL is required before deploying to Sepolia.");
   }
 
   const [deployer] = await ethers.getSigners();

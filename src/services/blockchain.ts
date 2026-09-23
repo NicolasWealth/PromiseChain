@@ -12,10 +12,10 @@ import {
 } from "viem";
 import type { Address } from "viem";
 import { readContract, waitForTransactionReceipt, writeContract } from "viem/actions";
-import { baseSepolia } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 
 import {
-  BASE_SEPOLIA_RPC_URL,
+  SEPOLIA_RPC_URL,
   PROMISECHAIN_ABI,
   PROMISECHAIN_CONTRACT_ADDRESS,
   isPromiseChainConfigured,
@@ -184,8 +184,8 @@ function requireContractAddress() {
 
 async function getLivePublicClient() {
   return createPublicClient({
-    chain: baseSepolia,
-    transport: http(BASE_SEPOLIA_RPC_URL),
+    chain: sepolia,
+    transport: http(SEPOLIA_RPC_URL),
   });
 }
 
@@ -200,7 +200,7 @@ async function getBrowserWalletClient() {
   }
 
   return createWalletClient({
-    chain: baseSepolia,
+    chain: sepolia,
     transport: custom(ethereum as never),
   });
 }
@@ -501,7 +501,7 @@ async function readLiveCommitment(id: string) {
     commitmentId,
   );
   if (!createdLog) {
-    throw new Error("Unable to load commitment from Base Sepolia");
+    throw new Error("Unable to load commitment from Sepolia");
   }
 
   const resolvedLog = await findEventLog(
@@ -636,13 +636,13 @@ function seedDemoPassportHistory(address: Address): PromisePassportHistory {
   const seeded =
     address === demoPassportAddress
       ? mockCommitments.map((commitment) => {
-          const seededCommitment = seedMockCommitment(commitment.id);
-          return {
-            ...seededCommitment,
-            creator: shortAddress(address),
-            creatorAddress: address,
-          };
-        })
+        const seededCommitment = seedMockCommitment(commitment.id);
+        return {
+          ...seededCommitment,
+          creator: shortAddress(address),
+          creatorAddress: address,
+        };
+      })
       : [];
   const createdInSession = Array.from(demoCommitments.values()).filter((commitment) => {
     if (commitment.creatorAddress) {
@@ -749,7 +749,7 @@ export const blockchainService = {
 
     const receipt = await waitForTransactionReceipt(publicClient, { hash });
     if (receipt.status !== "success") {
-      throw new Error("PromiseChain transaction failed on Base Sepolia");
+      throw new Error("PromiseChain transaction failed on Sepolia");
     }
 
     const decodedLogs = parseEventLogs({
@@ -758,7 +758,7 @@ export const blockchainService = {
     });
     const createdLog = decodedLogs.find((log) => log.eventName === "CommitmentCreated");
     if (!createdLog || createdLog.args.id === undefined) {
-      throw new Error("Unable to read commitment creation event from Base Sepolia");
+      throw new Error("Unable to read commitment creation event from Sepolia");
     }
 
     const commitmentId = createdLog.args.id.toString();
@@ -818,12 +818,12 @@ export const blockchainService = {
     }
 
     if (!/^\d+$/.test(id)) {
-      throw new Error("Unable to load commitment from Base Sepolia");
+      throw new Error("Unable to load commitment from Sepolia");
     }
 
     const liveCommitment = await readLiveCommitment(id);
     if (!liveCommitment) {
-      throw new Error("Unable to load commitment from Base Sepolia");
+      throw new Error("Unable to load commitment from Sepolia");
     }
 
     return liveCommitment;
@@ -876,7 +876,7 @@ export const blockchainService = {
 
     const receipt = await waitForTransactionReceipt(publicClient, { hash });
     if (receipt.status !== "success") {
-      throw new Error("PromiseChain transaction failed on Base Sepolia");
+      throw new Error("PromiseChain transaction failed on Sepolia");
     }
 
     const updated = {
@@ -919,7 +919,7 @@ export const blockchainService = {
 
     const receipt = await waitForTransactionReceipt(publicClient, { hash });
     if (receipt.status !== "success") {
-      throw new Error("PromiseChain transaction failed on Base Sepolia");
+      throw new Error("PromiseChain transaction failed on Sepolia");
     }
 
     const updated = {
@@ -959,14 +959,14 @@ export const blockchainService = {
             : "pending";
       return {
         hash,
-        network: "Base Sepolia",
+        network: "sepolia",
         status: confirmationStatus,
         block: receipt.blockNumber.toString(),
         blockNumber: receipt.blockNumber.toString(),
         confirmationStatus,
       };
     } catch {
-      throw new Error("Unable to load transaction from Base Sepolia");
+      throw new Error("Unable to load transaction from Sepolia");
     }
   },
 };

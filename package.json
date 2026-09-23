@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "hardhat:compile": "hardhat compile",
     "hardhat:test": "hardhat test",
-    "hardhat:deploy:base-sepolia": "hardhat run scripts/deploy.ts --network baseSepolia"
+    "hardhat:deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia"
   },
   "overrides": {
     "rolldown": "1.2.1"

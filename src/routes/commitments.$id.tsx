@@ -49,7 +49,7 @@ function CommitmentDetails() {
 
   const displayCommitment = commitment ? toCommitmentView(commitment) : undefined;
   const errorMessage =
-    error instanceof Error ? error.message : "Unable to load commitment from Base Sepolia.";
+    error instanceof Error ? error.message : "Unable to load commitment from Sepolia.";
 
   if (isLoading || !commitment || !displayCommitment) {
     if (error) {
@@ -58,7 +58,7 @@ function CommitmentDetails() {
           <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
             <div className="border border-rule bg-panel p-8 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">
-                Unable to load commitment from Base Sepolia
+                Unable to load commitment from Sepolia
               </p>
               <p className="mt-2">{errorMessage}</p>
               <p className="mt-4 text-xs uppercase tracking-[0.14em] text-faint">
@@ -118,7 +118,7 @@ function CommitmentDetails() {
             <div className="flex items-center justify-between">
               <SectionEyebrow>Transactions</SectionEyebrow>
               <span className="font-mono text-[10px] text-faint">
-                {commitment.mode === "chain" ? "Base Sepolia" : "Demo mode"}
+                {commitment.mode === "chain" ? "Sepolia" : "Demo mode"}
               </span>
             </div>
             <div className="mt-3 border-y border-rule">

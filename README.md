@@ -2,7 +2,7 @@
 
 PromiseChain is an accountability app for funded commitments. A creator defines a promise, locks ETH in escrow, names a beneficiary, sets a deadline, and specifies GitHub evidence that can be checked before an authorized resolver settles the commitment.
 
-The current MVP runs against the Base Sepolia network when contract environment variables are configured, and falls back to demo data when they are not.
+The current MVP runs against the Sepolia network when contract environment variables are configured, and falls back to demo data when they are not.
 
 ## What PromiseChain Does
 
@@ -17,7 +17,7 @@ The Promise Record is not an objective reputation score. It is a transparent sum
 ## Core Flow
 
 1. A creator opens the app and creates a commitment.
-2. The Solidity contract locks ETH escrow on Base Sepolia.
+2. The Solidity contract locks ETH escrow on Sepolia.
 3. The commitment stores the creator, beneficiary, amount, deadline, description, evidence type, and evidence reference.
 4. The resolver reviews the evidence.
 5. GitHub evidence is externally verified through a server-side verification boundary, while the authorized resolver remains responsible for submitting evidence and resolving escrow on-chain.
@@ -28,7 +28,7 @@ The Promise Record is not an objective reputation score. It is a transparent sum
 ## Architecture
 
 - `contracts/PromiseChain.sol`: Solidity escrow contract.
-- `src/services/blockchain.ts`: frontend service boundary for demo mode and Base Sepolia contract reads/writes.
+- `src/services/blockchain.ts`: frontend service boundary for demo mode and epolia contract reads/writes.
 - `src/services/evidence.ts`: GitHub evidence validation and verification logic.
 - `src/services/evidenceVerification.ts`: server-side verification boundary for GitHub access.
 - `src/services/promiseRecord.ts`: derived Promise Record metrics.
@@ -79,11 +79,11 @@ Active and evidence-submitted commitments are excluded from the fulfillment deno
 
 ## Environment Setup
 
-Create a local `.env` file when running against Base Sepolia:
+Create a local `.env` file when running against Sepolia:
 
 ```sh
 VITE_PROMISECHAIN_CONTRACT_ADDRESS=0x...
-VITE_BASE_SEPOLIA_RPC_URL=https://...
+VITE_SEPOLIA_RPC_URL=https://...
 GITHUB_TOKEN=github_pat_or_token
 ```
 
@@ -115,13 +115,13 @@ Compile the contract before deployment:
 npm.cmd run hardhat:compile
 ```
 
-Deployments target Base Sepolia through the configured Hardhat network:
+Deployments target Sepolia through the configured Hardhat network:
 
 ```sh
-npm.cmd run hardhat:deploy:base-sepolia
+npm.cmd run hardhat:deploy:sepolia
 ```
 
-After deployment, set `VITE_PROMISECHAIN_CONTRACT_ADDRESS` to the deployed contract address and provide a Base Sepolia RPC URL.
+After deployment, set `VITE_PROMISECHAIN_CONTRACT_ADDRESS` to the deployed contract address and provide a Sepolia RPC URL.
 
 ## Known MVP Limitations
 

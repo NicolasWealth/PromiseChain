@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useAccount, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,7 @@ export function WalletButton() {
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
-  const wrongNetwork = isConnected && chainId !== baseSepolia.id;
+  const wrongNetwork = isConnected && chainId !== sepolia.id;
 
   async function handleWalletAction() {
     if (busy) {
@@ -63,7 +63,7 @@ export function WalletButton() {
       }
 
       if (wrongNetwork) {
-        await switchChainAsync({ chainId: baseSepolia.id });
+        await switchChainAsync({ chainId: sepolia.id });
         return;
       }
 
@@ -81,7 +81,7 @@ export function WalletButton() {
       disabled={busy || isConnecting || isSwitching}
     >
       <WalletCards className="size-3.5" />
-      {wrongNetwork ? "Switch to Base Sepolia" : shortAddress(isConnected ? address : undefined)}
+      {wrongNetwork ? "Switch to Sepolia" : shortAddress(isConnected ? address : undefined)}
     </Button>
   );
 }
@@ -113,7 +113,7 @@ export function Navbar() {
         </nav>
         <div className="ml-auto hidden items-center gap-3 sm:flex">
           <span className="hidden font-mono text-[10px] font-medium text-faint lg:block">
-            network: Base Sepolia
+            network: Sepolia
           </span>
           <WalletButton />
         </div>
@@ -320,7 +320,7 @@ export function Footer() {
     <footer className="border-t border-rule">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-6 font-mono text-[11px] sm:px-8">
         <span className="text-muted-foreground">PromiseChain / ETH escrow / on-chain resolver</span>
-        <span className="text-faint">Base Sepolia ready / GitHub evidence metadata</span>
+        <span className="text-faint">Sepolia ready / GitHub evidence metadata</span>
       </div>
     </footer>
   );

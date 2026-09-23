@@ -124,12 +124,12 @@ function Resolution() {
           <main className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
             <div className="border border-rule bg-panel p-8 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">
-                Unable to load commitment from Base Sepolia
+                Unable to load commitment from Sepolia
               </p>
               <p className="mt-2">
                 {error instanceof Error
                   ? error.message
-                  : "Unable to load commitment from Base Sepolia."}
+                  : "Unable to load commitment from Sepolia."}
               </p>
             </div>
           </main>
@@ -167,10 +167,10 @@ function Resolution() {
     currentCommitment.mode === "demo"
       ? isConnected
       : Boolean(
-          address &&
-          currentCommitment.resolver &&
-          address.toLowerCase() === currentCommitment.resolver.toLowerCase(),
-        );
+        address &&
+        currentCommitment.resolver &&
+        address.toLowerCase() === currentCommitment.resolver.toLowerCase(),
+      );
   const deadlinePassed = isDeadlinePassed(currentCommitment.deadline);
   const canFail =
     currentCommitment.status === "active" && (deadlinePassed || currentCommitment.mode === "demo");

@@ -128,7 +128,7 @@ function PromisePassport() {
           {history?.mode === "demo" && (
             <p className="mt-5 max-w-2xl text-xs leading-5 text-muted-foreground">
               Demo mode is showing local sample commitments for the demo creator wallet. Live
-              Passport records load from Base Sepolia when the contract is configured.
+              Passport records load from Sepolia when the contract is configured.
             </p>
           )}
           {history?.scanLimitReached && (
@@ -168,7 +168,7 @@ function PromisePassport() {
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   {error instanceof Error
                     ? error.message
-                    : "Unable to load commitments from Base Sepolia."}
+                    : "Unable to load commitments from Sepolia."}
                 </p>
               </div>
             </div>

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, ArrowLeft, Check, ChevronDown, LoaderCircle } from "lucide-react";
 import { useAccount, useChainId, useConnect, useSwitchChain } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { sepolia } from "wagmi/chains";
 import { isAddress } from "viem";
 
 import { Button } from "@/components/ui/button";
@@ -113,8 +113,8 @@ function CreateCommitment() {
       await connectAsync({ connector });
     }
 
-    if (chainId !== baseSepolia.id) {
-      await switchChainAsync({ chainId: baseSepolia.id });
+    if (chainId !== sepolia.id) {
+      await switchChainAsync({ chainId: sepolia.id });
     }
   }
 
@@ -456,7 +456,7 @@ function CreateCommitment() {
                 </p>
               </div>
               <p className="border-t border-rule pt-4 font-mono text-[10px] leading-5 text-faint">
-                Wallet + Base Sepolia are required for a live escrow. Demo mode stays explicit when
+                Wallet + Sepolia are required for a live escrow. Demo mode stays explicit when
                 deployment is not configured.
               </p>
             </div>

@@ -22,7 +22,8 @@ cache/
 
 # Temporary files
 .tmp/
-
+.env
+.env.local
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

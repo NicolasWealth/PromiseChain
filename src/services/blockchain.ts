@@ -216,11 +216,15 @@ async function findEventLog(
     typeof commitmentCreatedEvent | typeof commitmentResolvedEvent | typeof evidenceSubmittedEvent,
   id: bigint,
 ) {
+  const latestBlock = await publicClient.getBlockNumber();
+  const maxRange = 45_000n; // stay under the RPC provider's 50,000-block eth_getLogs limit
+  const fromBlock = latestBlock > maxRange ? latestBlock - maxRange : 0n;
+
   const logs = await publicClient.getLogs({
     address: contractAddress,
     event,
     args: { id },
-    fromBlock: 0n,
+    fromBlock,
     toBlock: "latest",
   });
 

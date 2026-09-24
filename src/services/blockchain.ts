@@ -1,7 +1,5 @@
 import {
   createPublicClient,
-  createWalletClient,
-  custom,
   formatEther,
   getAddress,
   http,
@@ -12,7 +10,10 @@ import {
 } from "viem";
 import type { Address } from "viem";
 import { readContract, waitForTransactionReceipt, writeContract } from "viem/actions";
+import { getConnectorClient } from "wagmi/actions";
 import { sepolia } from "wagmi/chains";
+
+import { wagmiConfig } from "@/lib/web3/config";
 
 import {
   SEPOLIA_RPC_URL,
@@ -193,16 +194,11 @@ async function getBrowserWalletClient() {
   if (typeof window === "undefined") {
     throw new Error("Wallet interactions are only available in the browser");
   }
-
-  const ethereum = (window as Window & { ethereum?: unknown }).ethereum;
-  if (!ethereum) {
-    throw new Error("No wallet provider was found");
+  try {
+    return await getConnectorClient(wagmiConfig);
+  } catch {
+    throw new Error("Connect your wallet using the navbar button before continuing");
   }
-
-  return createWalletClient({
-    chain: sepolia,
-    transport: custom(ethereum as never),
-  });
 }
 
 async function getBlockTimestampLabel(
@@ -636,13 +632,13 @@ function seedDemoPassportHistory(address: Address): PromisePassportHistory {
   const seeded =
     address === demoPassportAddress
       ? mockCommitments.map((commitment) => {
-        const seededCommitment = seedMockCommitment(commitment.id);
-        return {
-          ...seededCommitment,
-          creator: shortAddress(address),
-          creatorAddress: address,
-        };
-      })
+          const seededCommitment = seedMockCommitment(commitment.id);
+          return {
+            ...seededCommitment,
+            creator: shortAddress(address),
+            creatorAddress: address,
+          };
+        })
       : [];
   const createdInSession = Array.from(demoCommitments.values()).filter((commitment) => {
     if (commitment.creatorAddress) {
@@ -722,14 +718,13 @@ export const blockchainService = {
     }
 
     const walletClient = await getBrowserWalletClient();
-    const [account] = await walletClient.requestAddresses();
-    if (!account) {
+    const accountAddress = walletClient.account.address;
+    if (!accountAddress) {
       throw new Error("A connected wallet account is required");
     }
 
     const publicClient = await getLivePublicClient();
     const contractAddress = requireContractAddress();
-    const accountAddress = getAddress(account);
     const description = `${input.title}\n\n${input.description}`.trim();
     const deadline = parseDeadline(input.deadline);
     const hash = await writeContract(walletClient, {
@@ -859,8 +854,8 @@ export const blockchainService = {
     }
 
     const walletClient = await getBrowserWalletClient();
-    const [account] = await walletClient.requestAddresses();
-    if (!account) {
+    const accountAddress = walletClient.account.address;
+    if (!accountAddress) {
       throw new Error("A connected wallet account is required");
     }
 
@@ -871,7 +866,7 @@ export const blockchainService = {
       address: contractAddress,
       functionName: "submitEvidence",
       args: [BigInt(id), evidenceType, evidenceReference],
-      account: getAddress(account),
+      account: accountAddress,
     });
 
     const receipt = await waitForTransactionReceipt(publicClient, { hash });
@@ -902,8 +897,8 @@ export const blockchainService = {
     }
 
     const walletClient = await getBrowserWalletClient();
-    const [account] = await walletClient.requestAddresses();
-    if (!account) {
+    const accountAddress = walletClient.account.address;
+    if (!accountAddress) {
       throw new Error("A connected wallet account is required");
     }
 
@@ -914,7 +909,7 @@ export const blockchainService = {
       address: contractAddress,
       functionName: "resolveCommitment",
       args: [BigInt(id), success],
-      account: getAddress(account),
+      account: accountAddress,
     });
 
     const receipt = await waitForTransactionReceipt(publicClient, { hash });

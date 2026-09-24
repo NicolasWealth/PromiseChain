@@ -39,6 +39,8 @@ export function Logo() {
 
 export function WalletButton() {
   const [busy, setBusy] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { address, isConnected } = useAccount();
   const { connectors, connectAsync, isPending: isConnecting } = useConnect();
   const { disconnect } = useDisconnect();
@@ -46,43 +48,109 @@ export function WalletButton() {
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const wrongNetwork = isConnected && chainId !== sepolia.id;
 
-  async function handleWalletAction() {
-    if (busy) {
-      return;
-    }
+  // Filter and deduplicate connectors
+  const hasRealProvider =
+    typeof window !== "undefined" &&
+    Boolean((window as unknown as { ethereum?: unknown }).ethereum);
+  const namedConnectors = connectors.filter(
+    (c) => c.name.toLowerCase() !== "injected" && c.name.toLowerCase() !== "mock",
+  );
+  const injectedConnector =
+    connectors.find(
+      (c) => c.name.toLowerCase() === "injected" || c.name.toLowerCase() === "mock",
+    ) || connectors[0];
 
+  const availableConnectors =
+    namedConnectors.length > 0
+      ? namedConnectors
+      : hasRealProvider && injectedConnector
+        ? [injectedConnector]
+        : [];
+
+  async function handleConnect(connector: (typeof connectors)[number]) {
+    setError(null);
     setBusy(true);
     try {
-      if (!isConnected) {
-        const connector = connectors[0];
-        if (!connector) {
-          throw new Error("No wallet connector is available");
-        }
-        await connectAsync({ connector });
-        return;
-      }
-
-      if (wrongNetwork) {
-        await switchChainAsync({ chainId: sepolia.id });
-        return;
-      }
-
-      disconnect();
+      await connectAsync({ connector });
+      setPickerOpen(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Failed to connect wallet");
     } finally {
       setBusy(false);
     }
   }
 
+  async function handleWalletAction() {
+    setError(null);
+    if (busy) {
+      return;
+    }
+
+    if (isConnected) {
+      if (wrongNetwork) {
+        setBusy(true);
+        try {
+          await switchChainAsync({ chainId: sepolia.id });
+        } catch (cause) {
+          setError(cause instanceof Error ? cause.message : "Failed to switch network");
+        } finally {
+          setBusy(false);
+        }
+        return;
+      }
+      disconnect();
+      return;
+    }
+
+    if (availableConnectors.length === 1 && availableConnectors[0]) {
+      await handleConnect(availableConnectors[0]);
+    } else if (availableConnectors.length > 1) {
+      setPickerOpen((prev) => !prev);
+    }
+  }
+
   return (
-    <Button
-      variant="accent"
-      size="sm"
-      onClick={handleWalletAction}
-      disabled={busy || isConnecting || isSwitching}
-    >
-      <WalletCards className="size-3.5" />
-      {wrongNetwork ? "Switch to Sepolia" : shortAddress(isConnected ? address : undefined)}
-    </Button>
+    <div className="relative inline-block">
+      <Button
+        variant="accent"
+        size="sm"
+        onClick={handleWalletAction}
+        disabled={busy || isConnecting || isSwitching}
+      >
+        <WalletCards className="size-3.5" />
+        {!isConnected && availableConnectors.length === 0
+          ? "Install a compatible wallet"
+          : wrongNetwork
+            ? "Switch to Sepolia"
+            : shortAddress(isConnected ? address : undefined)}
+      </Button>
+
+      {pickerOpen && !isConnected && availableConnectors.length > 1 && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-56 border border-rule bg-panel p-2 shadow-lg">
+          <div className="mb-2 px-2 py-1 text-xs font-semibold text-muted-foreground">
+            Select Wallet
+          </div>
+          <div className="space-y-1">
+            {availableConnectors.map((connector) => (
+              <button
+                key={connector.uid || connector.id || connector.name}
+                onClick={() => handleConnect(connector)}
+                disabled={busy}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium hover:bg-lime/20 focus:bg-lime/20 outline-none"
+              >
+                <WalletCards className="size-3.5 text-lime-soft" />
+                <span>{connector.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="absolute right-0 top-full z-50 mt-1 max-w-xs text-right font-mono text-[10px] text-danger">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
 

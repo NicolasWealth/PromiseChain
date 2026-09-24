@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, ArrowLeft, Check, ChevronDown, LoaderCircle } from "lucide-react";
-import { useAccount, useChainId, useConnect, useSwitchChain } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { isAddress } from "viem";
 
@@ -47,7 +47,6 @@ export const Route = createFileRoute("/create")({
 function CreateCommitment() {
   const navigate = useNavigate({ from: "/create" });
   const { isConnected } = useAccount();
-  const { connectors, connectAsync } = useConnect();
   const chainId = useChainId();
   const { switchChainAsync } = useSwitchChain();
 
@@ -106,11 +105,9 @@ function CreateCommitment() {
     }
 
     if (!isConnected) {
-      const connector = connectors[0];
-      if (!connector) {
-        throw new Error("No wallet connector is available");
-      }
-      await connectAsync({ connector });
+      throw new Error(
+        "Please connect your wallet using the navbar button before creating a promise.",
+      );
     }
 
     if (chainId !== sepolia.id) {

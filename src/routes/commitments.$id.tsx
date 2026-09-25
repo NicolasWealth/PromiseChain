@@ -15,7 +15,7 @@ import { blockchainService, toCommitmentView } from "@/services/blockchain";
 import { getCommitment as getMockCommitment } from "@/services/mockData";
 
 function baseScanTxUrl(hash?: string) {
-  return hash ? `https://sepolia.basescan.org/tx/${hash}` : undefined;
+  return hash ? `https://sepolia.etherscan.io/tx/${hash}` : undefined;
 }
 
 export const Route = createFileRoute("/commitments/$id")({
